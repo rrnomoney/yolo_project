@@ -240,6 +240,45 @@
             vertical-align: middle;
             padding-top: 20px;
         }
+        .detail-content {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .detail-image-box {
+            width: 100%;
+            max-width: 520px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+            background: #fafafa;
+        }
+
+        .detail-image {
+            width: 100%;
+            display: block;
+        }
+        .download-box {
+            margin-top: 6px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: #4a7df0;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .download-btn:hover {
+            background: #3367d6;
+        }
         @media (max-width: 1100px) {
             .thumb {
                 width: 110px;
@@ -362,19 +401,34 @@
     <div class="details-box">
         <details>
             <summary>查看详情</summary>
-            <div class="detail-table-wrapper">
-                <table class="detail-table">
-                    <thead>
-                        <tr>
-                            <th>目标名称</th>
-                            <th>置信度</th>
-                            <th>坐标</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows}
-                    </tbody>
-                </table>
+
+            <div class="detail-content">
+
+                <!-- 放大检测图 -->
+                <div class="detail-image-box">
+                    <img src="${data.image || ''}" class="detail-image" alt="检测结果图">
+                </div>
+
+               <div class="download-box">
+                    <a href="${data.image}" download class="download-btn">下载检测图</a>
+                </div>
+
+                <!-- 表格 -->
+                <div class="detail-table-wrapper">
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>目标名称</th>
+                                <th>置信度</th>
+                                <th>坐标</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
         </details>
     </div>
