@@ -304,6 +304,10 @@
         <h1>检测历史记录</h1>
         <div>
             <a href="/api/detect/toDetect" class="btn" style="margin-right: 10px;">返回检测</a>
+
+            <!-- 👇 新加的 -->
+            <a href="/api/detect/stats" class="btn" style="margin-right: 10px;">统计分析</a>
+
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn logout-btn">退出登录</button>
             </form>

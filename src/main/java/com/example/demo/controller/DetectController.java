@@ -18,6 +18,10 @@ import com.example.demo.repository.DetectRecordRepository;
 import com.example.demo.repository.UserRepository;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import org.springframework.ui.Model;
+import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 @RequestMapping("/api/detect")
@@ -137,4 +141,59 @@ public class DetectController {
     //先拿当前登录用户
     //再查这条记录
     //只有这条记录属于当前用户，才允许删除
+
+    @GetMapping("/stats")
+    public String getStats(Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/toLogin";
+        }
+
+        User user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/toLogin";
+        }
+
+        List<DetectRecord> records = detectRecordRepository.findByUserOrderByDetectTimeDesc(user);
+
+        int totalImages = records.size();
+        int totalObjects = 0;
+        Map<String, Integer> classCountMap = new LinkedHashMap<>();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        for (DetectRecord record : records) {
+            try {
+                String detectResult = record.getDetectResult();
+                if (detectResult == null || detectResult.isBlank()) {
+                    continue;
+                }
+
+                JsonNode root = objectMapper.readTree(detectResult);
+                JsonNode predictions = root.get("predictions");
+
+                if (predictions != null && predictions.isArray()) {
+                    for (JsonNode prediction : predictions) {
+                        totalObjects++;
+
+                        String className = prediction.has("name")
+                                ? prediction.get("name").asText()
+                                : "unknown";
+
+                        classCountMap.put(className, classCountMap.getOrDefault(className, 0) + 1);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("解析检测记录失败: " + e.getMessage());
+            }
+        }
+
+        int classTypeCount = classCountMap.size();
+
+        model.addAttribute("totalImages", totalImages);
+        model.addAttribute("totalObjects", totalObjects);
+        model.addAttribute("classTypeCount", classTypeCount);
+        model.addAttribute("classCountMap", classCountMap);
+
+        return "stats";
+    }
 }

@@ -344,6 +344,10 @@
         <h1>YOLO 目标检测系统</h1>
         <div>
             <a href="/api/detect/history" class="btn" style="margin-right: 10px;">检测历史</a>
+
+            <!-- 👇 新加的 -->
+            <a href="/api/detect/stats" class="btn" style="margin-right: 10px;">统计分析</a>
+
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn logout-btn">退出登录</button>
             </form>
