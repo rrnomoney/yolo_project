@@ -29,6 +29,8 @@ public class DetectController {
 
     @Value("${yolo.api.url:http://localhost:5000/detect}")
     private String yoloApiUrl;
+    @Value("${yolo.video.api.url:http://localhost:5000/detect_video}")
+    private String yoloVideoApiUrl;
 
     private final RestTemplate restTemplate;
     private final DetectRecordRepository detectRecordRepository;
@@ -105,6 +107,70 @@ public class DetectController {
         }
     }
 
+    @PostMapping("/video")
+    @ResponseBody
+    public ResponseEntity<String> detectVideo(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "confidence", required = false, defaultValue = "0.5") float confidence,
+            Principal principal) {
+        try {
+            if (principal == null) {
+                return ResponseEntity.status(401).body("请先登录");
+            }
+
+            User user = userRepository.findByUsername(principal.getName()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(401).body("当前用户不存在");
+            }
+
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body("上传失败：请选择视频文件");
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("上传失败：文件名无效");
+            }
+
+            String lowerName = originalFilename.toLowerCase();
+            if (!(lowerName.endsWith(".mp4") || lowerName.endsWith(".avi") ||
+                    lowerName.endsWith(".mov") || lowerName.endsWith(".mkv"))) {
+                return ResponseEntity.badRequest().body("上传失败：仅支持 mp4、avi、mov、mkv 格式视频");
+            }
+
+            // 👉 视频限制 100MB
+            long maxSize = 100 * 1024 * 1024;
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body("上传失败：视频不能超过 100MB");
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return originalFilename;
+                }
+            };
+
+            body.add("file", resource);
+            body.add("confidence", String.valueOf(confidence));
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, headers);
+
+            // 👉 调 Python 视频接口
+            String result = restTemplate.postForObject(yoloVideoApiUrl, requestEntity, String.class);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.err.println("视频检测转发失败: " + e.getMessage());
+            return ResponseEntity.status(500).body("视频检测转发失败: " + e.getMessage());
+        }
+    }
     @GetMapping("/history")
     public String getDetectionHistory(org.springframework.ui.Model model, Principal principal) {
         java.util.List<DetectRecord> records = new java.util.ArrayList<>();
