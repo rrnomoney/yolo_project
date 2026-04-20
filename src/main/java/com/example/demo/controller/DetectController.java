@@ -43,9 +43,37 @@ public class DetectController {
 
     @PostMapping("/image")
     @ResponseBody
-    public ResponseEntity<String> detectImage(@RequestParam("file") MultipartFile file, Principal principal) {
+    public ResponseEntity<String> detectImage(@RequestParam("file") MultipartFile file,@RequestParam(value = "confidence", required = false, defaultValue = "0.5") float confidence, Principal principal) {
         try {
-            // 构造多部分表单请求
+            if (principal == null) {
+                return ResponseEntity.status(401).body("请先登录");
+            }
+
+            User user = userRepository.findByUsername(principal.getName()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(401).body("当前用户不存在");
+            }
+
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body("上传失败：请选择图片文件");
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("上传失败：文件名无效");
+            }
+
+            String lowerName = originalFilename.toLowerCase();
+            if (!(lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".png"))) {
+                return ResponseEntity.badRequest().body("上传失败：仅支持 jpg、jpeg、png 格式图片");
+            }
+
+            // ✅ 改成 20MB
+            long maxSize = 20 * 1024 * 1024;
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest().body("上传失败：图片不能超过 20MB");
+            }
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -53,25 +81,18 @@ public class DetectController {
             ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
                 @Override
                 public String getFilename() {
-                    return file.getOriginalFilename();
+                    return originalFilename;
                 }
             };
             body.add("file", resource);
+            body.add("confidence", String.valueOf(confidence));
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            // 发送请求到 YOLO 服务
             String result = restTemplate.postForObject(yoloApiUrl, requestEntity, String.class);
 
-            // 保存检测记录
-            if (principal != null) {
-                String username = principal.getName();
-                User user = userRepository.findByUsername(username).orElse(null);
-                if (user != null) {
-                    DetectRecord record = new DetectRecord(user, file.getOriginalFilename(), result, LocalDateTime.now());
-                    detectRecordRepository.save(record);
-                }
-            }
+            DetectRecord record = new DetectRecord(user, originalFilename, result, LocalDateTime.now());
+            detectRecordRepository.save(record);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -81,15 +102,39 @@ public class DetectController {
     }
 
     @GetMapping("/history")
-    public String getDetectionHistory(org.springframework.ui.Model model, java.security.Principal principal) {
+    public String getDetectionHistory(org.springframework.ui.Model model, Principal principal) {
+        java.util.List<DetectRecord> records = new java.util.ArrayList<>();
+
         if (principal != null) {
-            String username = principal.getName();
-            User user = userRepository.findByUsername(username).orElse(null);
+            User user = userRepository.findByUsername(principal.getName()).orElse(null);
             if (user != null) {
-                java.util.List<DetectRecord> records = detectRecordRepository.findByUserOrderByDetectTimeDesc(user);
-                model.addAttribute("records", records);
+                records = detectRecordRepository.findByUserOrderByDetectTimeDesc(user);
             }
         }
+
+        model.addAttribute("records", records);
         return "history";
     }
+
+    @PostMapping("/history/delete/{id}")
+    public String deleteHistory(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return "redirect:/toLogin";
+        }
+
+        User user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/toLogin";
+        }
+
+        DetectRecord record = detectRecordRepository.findById(id).orElse(null);
+        if (record != null && record.getUser() != null && record.getUser().getId().equals(user.getId())) {
+            detectRecordRepository.delete(record);
+        }
+
+        return "redirect:/api/detect/history";
+    }
+    //先拿当前登录用户
+    //再查这条记录
+    //只有这条记录属于当前用户，才允许删除
 }
