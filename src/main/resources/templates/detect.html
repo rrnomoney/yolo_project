@@ -5,96 +5,409 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YOLO 目标检测系统</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        h1 { color: #333; text-align: center; }
-        .upload-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 300px; }
-        .card h3 { margin-top: 0; color: #555; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        img { max-width: 100%; border-radius: 4px; display: block; margin: 0 auto; }
-        #result { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f8f9fa; color: #333; }
-        tr:hover { background-color: #f1f1f1; }
-        .confidence-bar { background: #eee; border-radius: 4px; height: 10px; width: 100px; display: inline-block; margin-right: 10px; }
-        .confidence-level { background: #28a745; height: 100%; border-radius: 4px; }
-        
-        /* Loading Spinner */
-        #loader { display: none; text-align: center; padding: 20px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .btn { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .btn:hover { background-color: #0056b3; }
-        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
 
-        /* Header Navigation */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 24px; }
-        .logout-btn { background-color: #dc3545; }
-        .logout-btn:hover { background-color: #c82333; }
+        .page-container {
+            max-width: 1220px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            padding: 14px 24px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .btn {
+            background-color: #4a7df0;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #3367d6;
+        }
+
+        .btn:disabled {
+            background-color: #b7c7f5;
+            cursor: not-allowed;
+        }
+
+        .logout-btn {
+            background-color: #d9534f;
+        }
+
+        .logout-btn:hover {
+            background-color: #c83f3b;
+        }
+
+        .secondary-btn {
+            background: #eef2f7;
+            color: #556070;
+        }
+
+        .secondary-btn:hover {
+            background: #dde5ef;
+        }
+
+        .upload-section,
+        .card,
+        #result {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        .upload-section {
+            padding: 24px 28px;
+            margin-bottom: 22px;
+        }
+
+        .upload-form-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            padding: 10px 12px;
+            border: 1px solid #d8dee9;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: 0.2s;
+            background: #fff;
+        }
+
+        input[type="number"] {
+            width: 110px;
+        }
+
+        input[type="text"] {
+            width: 180px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            border-color: #4a7df0;
+            box-shadow: 0 0 0 3px rgba(74, 125, 240, 0.12);
+        }
+
+        input[type="file"] {
+            font-size: 14px;
+        }
+
+        #loader {
+            display: none;
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4a7df0;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            flex: 1;
+            min-width: 320px;
+            padding: 18px 18px 16px 18px;
+        }
+
+        .card-title-line {
+            border-bottom: 1px solid #eceff3;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card h3,
+        #result h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #eee;
+        }
+
+        #result {
+            padding: 24px 28px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .summary-block {
+            background: #fafbfc;
+            border: 1px solid #eceff3;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .summary-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .summary-tag {
+            background: #eef4ff;
+            color: #2f5fb3;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .summary-total {
+            background: #fff5db;
+            color: #9a6b00;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #ececec;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #f7f9fc;
+            color: #444;
+            font-weight: 700;
+        }
+
+        .confidence-bar {
+            background: #eee;
+            border-radius: 999px;
+            height: 10px;
+            width: 110px;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+
+        .confidence-level {
+            background: #4caf50;
+            height: 100%;
+            border-radius: 999px;
+        }
+
+        details {
+            margin-top: 18px;
+        }
+
+        details summary {
+            cursor: pointer;
+            color: #4a7df0;
+            font-weight: 600;
+            list-style: none;
+        }
+
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details summary::before {
+            content: "▶ ";
+            font-size: 12px;
+        }
+
+        details[open] summary::before {
+            content: "▼ ";
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            overflow: auto;
+            margin-top: 10px;
+            border: 1px solid #eee;
+        }
+
+        .empty-text {
+            color: #777;
+            font-size: 15px;
+            padding: 8px 0;
+        }
+
+        @media (max-width: 900px) {
+            .upload-form-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+        }
     </style>
 </head>
 <body>
+<div class="page-container">
 
-<div class="header">
-    <h1>YOLO 目标检测系统</h1>
-    <div>
-        <a href="/api/detect/history" class="btn" style="margin-right: 10px;">检测历史</a>
-        <form th:action="@{/logout}" method="post" style="display: inline;">
-            <button type="submit" class="btn logout-btn">退出登录</button>
+    <div class="header">
+        <h1>YOLO 目标检测系统</h1>
+        <div>
+            <a href="/api/detect/history" class="btn" style="margin-right: 10px;">检测历史</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn logout-btn">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <form id="uploadForm" action="/api/detect/image" method="post" enctype="multipart/form-data">
+            <div class="upload-form-row">
+                <div class="form-group">
+                    <label for="file" class="form-label">选择待检测图片:</label>
+                    <input type="file" id="file" name="file" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confidence" class="form-label">置信度阈值:</label>
+                    <input type="number" id="confidence" name="confidence" value="0.5" step="0.05" min="0" max="1">
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">开始检测</button>
+            </div>
         </form>
     </div>
-</div>
 
-<div class="upload-section">
-    <form id="uploadForm" action="/api/detect/image" method="post" enctype="multipart/form-data">
-        <label for="file" style="font-weight: bold;">选择待检测图片:</label>
-        <input type="file" id="file" name="file" accept="image/*" required style="margin-right: 10px;">
-        <label style="margin-left:10px;">置信度阈值:</label>
-        <input type="number" id="confidence" name="confidence"
-               value="0.5" step="0.05" min="0" max="1"
-               style="width:80px; margin-right:10px;">
-        <button type="submit" class="btn" id="submitBtn">开始检测</button>
-    </form>
-</div>
-
-<div id="loader">
-    <div class="spinner"></div>
-    <p>AI 正在全力识别中，请稍候...</p>
-</div>
-
-<div class="container" id="imageContainer" style="display: none;">
-    <div class="card">
-        <h3>原始图片</h3>
-        <img id="originalImage" src="#" alt="原始图片">
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>AI 正在全力识别中，请稍候...</p>
     </div>
-    <div class="card">
-        <h3>检测结果 (Python YOLO 标记)</h3>
-        <div style="position: relative; display: inline-block; width: 100%;">
+
+    <div class="container" id="imageContainer" style="display: none;">
+        <div class="card">
+            <div class="card-title-line">
+                <h3>原始图片</h3>
+            </div>
+            <img id="originalImage" src="#" alt="原始图片">
+        </div>
+
+        <div class="card">
+            <div class="card-title-line">
+                <h3>检测结果（Python YOLO 标记）</h3>
+            </div>
             <img id="detectedImage" src="#" alt="标记图片">
         </div>
     </div>
-</div>
 
-<div id="result" style="display: none;">
-    <h3>检测详情统计</h3>
-    <div style="margin-bottom: 15px;">
-        <label for="classFilter" style="font-weight: bold; margin-right: 10px;">目标类别筛选:</label>
-        <input type="text" id="classFilter" placeholder="例如：person"
-               style="padding: 8px; width: 180px; margin-right: 10px;">
-        <button type="button" class="btn" id="filterBtn">应用筛选</button>
-        <button type="button" class="btn" id="resetFilterBtn" style="background-color: #6c757d; margin-left: 8px;">重置</button>
+    <div id="result" style="display: none;">
+        <h3 style="margin-bottom: 16px;">检测详情统计</h3>
+
+        <div class="filter-row">
+            <label for="classFilter" class="filter-label">目标类别筛选:</label>
+            <input type="text" id="classFilter" placeholder="例如：person">
+            <button type="button" class="btn" id="filterBtn">应用筛选</button>
+            <button type="button" class="btn secondary-btn" id="resetFilterBtn">重置</button>
+        </div>
+
+        <div id="summaryContainer"></div>
+
+        <div id="tableContainer"></div>
+
+        <details style="margin-top: 20px; color: #666;">
+            <summary>查看原始 JSON 数据</summary>
+            <pre id="detectionResult"></pre>
+        </details>
     </div>
-    <div id="summaryContainer" style="margin-bottom: 15px;"></div>
-    <div id="tableContainer">
-        <!-- 动态生成表格 -->
-    </div>
-    <details style="margin-top: 20px; color: #666;">
-        <summary>查看原始 JSON 数据</summary>
-        <pre id="detectionResult" style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto;"></pre>
-    </details>
+
 </div>
 
 <script>
@@ -113,6 +426,7 @@
     const resetFilterBtn = document.getElementById("resetFilterBtn");
 
     let allPredictions = [];
+
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -130,11 +444,11 @@
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(form);
-        
+
         submitBtn.disabled = true;
         loader.style.display = "block";
         resultDiv.style.display = "none";
-        
+
         try {
             const response = await fetch("/api/detect/image", {
                 method: "POST",
@@ -148,22 +462,26 @@
 
             const result = await response.json();
             console.log("服务器返回原始数据:", result);
-            
+
             document.getElementById("detectionResult").innerText = JSON.stringify(result, null, 2);
-            
+
             let predictions = [];
             if (Array.isArray(result)) {
                 predictions = result;
             } else if (result && result.predictions && Array.isArray(result.predictions)) {
                 predictions = result.predictions;
             }
+
             allPredictions = predictions;
             updateResultTable(predictions);
+
             resultDiv.style.display = "block";
             imageContainer.style.display = "flex";
 
             if (result.image) {
-                detectedImage.src = result.image.startsWith('data:') ? result.image : `data:image/jpeg;base64,${result.image}`;
+                detectedImage.src = result.image.startsWith('data:')
+                    ? result.image
+                    : `data:image/jpeg;base64,${result.image}`;
             }
 
         } catch (error) {
@@ -178,72 +496,71 @@
     function updateResultTable(predictions) {
         if (!predictions || predictions.length === 0) {
             summaryContainer.innerHTML = "";
-            tableContainer.innerHTML = "<p>未检测到任何目标。</p>";
+            tableContainer.innerHTML = `<p class="empty-text">未检测到任何目标。</p>`;
             return;
         }
 
-        // 1. 统计各类别数量
         const classCountMap = {};
         predictions.forEach(p => {
             const className = p.name || "unknown";
             classCountMap[className] = (classCountMap[className] || 0) + 1;
         });
 
-        // 2. 生成统计展示区域
         let summaryHtml = `
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">目标数量统计</h4>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    `;
+            <div class="summary-block">
+                <div class="summary-title">目标数量统计</div>
+                <div class="summary-tags">
+        `;
+
+        summaryHtml += `<span class="summary-tag summary-total">总目标：${predictions.length} 个</span>`;
 
         for (const className in classCountMap) {
-            summaryHtml += `
-            <div style="
-                background: #e9f5ff;
-                color: #0056b3;
-                padding: 8px 14px;
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: bold;
-            ">
-                ${className}：${classCountMap[className]} 个
-            </div>
-        `;
+            summaryHtml += `<span class="summary-tag">${className}：${classCountMap[className]} 个</span>`;
         }
 
         summaryHtml += `
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
         summaryContainer.innerHTML = summaryHtml;
 
-        // 3. 生成详情表格
-        let html = `<table>
-        <thead>
-            <tr>
-                <th>目标名称</th>
-                <th>置信度</th>
-                <th>坐标 (xmin, ymin, xmax, ymax)</th>
-            </tr>
-        </thead>
-        <tbody>`;
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>目标名称</th>
+                        <th>置信度</th>
+                        <th>坐标 (xmin, ymin, xmax, ymax)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
 
         predictions.forEach(p => {
-            const confPercent = (p.confidence * 100).toFixed(1) + '%';
-            html += `<tr>
-            <td><strong>${p.name}</strong></td>
-            <td>
-                <div class="confidence-bar"><div class="confidence-level" style="width: ${confPercent}"></div></div>
-                ${confPercent}
-            </td>
-            <td>${Math.round(p.xmin)}, ${Math.round(p.ymin)}, ${Math.round(p.xmax)}, ${Math.round(p.ymax)}</td>
-        </tr>`;
+            const confPercent = (p.confidence * 100).toFixed(1) + "%";
+            html += `
+                <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td>
+                        <div class="confidence-bar">
+                            <div class="confidence-level" style="width: ${confPercent}"></div>
+                        </div>
+                        ${confPercent}
+                    </td>
+                    <td>${Math.round(p.xmin)}, ${Math.round(p.ymin)}, ${Math.round(p.xmax)}, ${Math.round(p.ymax)}</td>
+                </tr>
+            `;
         });
 
-        html += "</tbody></table>";
+        html += `
+                </tbody>
+            </table>
+        `;
+
         tableContainer.innerHTML = html;
     }
+
     filterBtn.addEventListener("click", () => {
         const keyword = filterInput.value.trim().toLowerCase();
 
