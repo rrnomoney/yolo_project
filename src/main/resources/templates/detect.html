@@ -80,6 +80,14 @@
 
 <div id="result" style="display: none;">
     <h3>检测详情统计</h3>
+    <div style="margin-bottom: 15px;">
+        <label for="classFilter" style="font-weight: bold; margin-right: 10px;">目标类别筛选:</label>
+        <input type="text" id="classFilter" placeholder="例如：person"
+               style="padding: 8px; width: 180px; margin-right: 10px;">
+        <button type="button" class="btn" id="filterBtn">应用筛选</button>
+        <button type="button" class="btn" id="resetFilterBtn" style="background-color: #6c757d; margin-left: 8px;">重置</button>
+    </div>
+    <div id="summaryContainer" style="margin-bottom: 15px;"></div>
     <div id="tableContainer">
         <!-- 动态生成表格 -->
     </div>
@@ -99,7 +107,12 @@
     const detectedImage = document.getElementById("detectedImage");
     const resultDiv = document.getElementById("result");
     const tableContainer = document.getElementById("tableContainer");
+    const summaryContainer = document.getElementById("summaryContainer");
+    const filterInput = document.getElementById("classFilter");
+    const filterBtn = document.getElementById("filterBtn");
+    const resetFilterBtn = document.getElementById("resetFilterBtn");
 
+    let allPredictions = [];
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -144,7 +157,7 @@
             } else if (result && result.predictions && Array.isArray(result.predictions)) {
                 predictions = result.predictions;
             }
-            
+            allPredictions = predictions;
             updateResultTable(predictions);
             resultDiv.style.display = "block";
             imageContainer.style.display = "flex";
@@ -164,35 +177,92 @@
 
     function updateResultTable(predictions) {
         if (!predictions || predictions.length === 0) {
+            summaryContainer.innerHTML = "";
             tableContainer.innerHTML = "<p>未检测到任何目标。</p>";
             return;
         }
 
+        // 1. 统计各类别数量
+        const classCountMap = {};
+        predictions.forEach(p => {
+            const className = p.name || "unknown";
+            classCountMap[className] = (classCountMap[className] || 0) + 1;
+        });
+
+        // 2. 生成统计展示区域
+        let summaryHtml = `
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <h4 style="margin: 0 0 10px 0; color: #333;">目标数量统计</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    `;
+
+        for (const className in classCountMap) {
+            summaryHtml += `
+            <div style="
+                background: #e9f5ff;
+                color: #0056b3;
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: bold;
+            ">
+                ${className}：${classCountMap[className]} 个
+            </div>
+        `;
+        }
+
+        summaryHtml += `
+            </div>
+        </div>
+    `;
+
+        summaryContainer.innerHTML = summaryHtml;
+
+        // 3. 生成详情表格
         let html = `<table>
-            <thead>
-                <tr>
-                    <th>目标名称</th>
-                    <th>置信度</th>
-                    <th>坐标 (xmin, ymin, xmax, ymax)</th>
-                </tr>
-            </thead>
-            <tbody>`;
+        <thead>
+            <tr>
+                <th>目标名称</th>
+                <th>置信度</th>
+                <th>坐标 (xmin, ymin, xmax, ymax)</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
         predictions.forEach(p => {
             const confPercent = (p.confidence * 100).toFixed(1) + '%';
             html += `<tr>
-                <td><strong>${p.name}</strong></td>
-                <td>
-                    <div class="confidence-bar"><div class="confidence-level" style="width: ${confPercent}"></div></div>
-                    ${confPercent}
-                </td>
-                <td>${Math.round(p.xmin)}, ${Math.round(p.ymin)}, ${Math.round(p.xmax)}, ${Math.round(p.ymax)}</td>
-            </tr>`;
+            <td><strong>${p.name}</strong></td>
+            <td>
+                <div class="confidence-bar"><div class="confidence-level" style="width: ${confPercent}"></div></div>
+                ${confPercent}
+            </td>
+            <td>${Math.round(p.xmin)}, ${Math.round(p.ymin)}, ${Math.round(p.xmax)}, ${Math.round(p.ymax)}</td>
+        </tr>`;
         });
 
         html += "</tbody></table>";
         tableContainer.innerHTML = html;
     }
+    filterBtn.addEventListener("click", () => {
+        const keyword = filterInput.value.trim().toLowerCase();
+
+        if (!keyword) {
+            updateResultTable(allPredictions);
+            return;
+        }
+
+        const filteredPredictions = allPredictions.filter(p =>
+            (p.name || "").toLowerCase() === keyword
+        );
+
+        updateResultTable(filteredPredictions);
+    });
+
+    resetFilterBtn.addEventListener("click", () => {
+        filterInput.value = "";
+        updateResultTable(allPredictions);
+    });
 </script>
 </body>
 </html>
