@@ -4,337 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YOLO 目标检测系统</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            color: #222;
-        }
-
-        .page-container {
-            max-width: 1220px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 22px;
-            padding: 14px 24px;
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-            color: #222;
-        }
-
-        .btn {
-            background-color: #4a7df0;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #3367d6;
-        }
-
-        .btn:disabled {
-            background-color: #b7c7f5;
-            cursor: not-allowed;
-        }
-
-        .logout-btn {
-            background-color: #d9534f;
-        }
-
-        .logout-btn:hover {
-            background-color: #c83f3b;
-        }
-
-        .secondary-btn {
-            background: #eef2f7;
-            color: #556070;
-        }
-
-        .secondary-btn:hover {
-            background: #dde5ef;
-        }
-
-        .upload-section,
-        .card,
-        #result {
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-
-        .upload-section {
-            padding: 24px 28px;
-            margin-bottom: 22px;
-        }
-
-        .upload-form-row {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
-
-        .form-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .form-label {
-            font-size: 16px;
-            font-weight: 700;
-            color: #222;
-        }
-
-        input[type="number"],
-        input[type="text"] {
-            padding: 10px 12px;
-            border: 1px solid #d8dee9;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-            transition: 0.2s;
-            background: #fff;
-        }
-
-        input[type="number"] {
-            width: 110px;
-        }
-
-        input[type="text"] {
-            width: 180px;
-        }
-
-        input[type="number"]:focus,
-        input[type="text"]:focus {
-            border-color: #4a7df0;
-            box-shadow: 0 0 0 3px rgba(74, 125, 240, 0.12);
-        }
-
-        input[type="file"] {
-            font-size: 14px;
-        }
-
-        #loader {
-            display: none;
-            text-align: center;
-            padding: 24px 0;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4a7df0;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 22px;
-        }
-
-        .card {
-            flex: 1;
-            min-width: 320px;
-            padding: 18px 18px 16px 18px;
-        }
-
-        .card-title-line {
-            border-bottom: 1px solid #eceff3;
-            padding-bottom: 10px;
-            margin-bottom: 14px;
-        }
-
-        .card h3,
-        #result h3 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            color: #222;
-        }
-
-        img {
-            max-width: 100%;
-            border-radius: 10px;
-            display: block;
-            margin: 0 auto;
-            border: 1px solid #eee;
-        }
-
-        #result {
-            padding: 24px 28px;
-        }
-
-        .filter-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-
-        .filter-label {
-            font-size: 16px;
-            font-weight: 700;
-            color: #222;
-        }
-
-        .summary-block {
-            background: #fafbfc;
-            border: 1px solid #eceff3;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-        }
-
-        .summary-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .summary-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .summary-tag {
-            background: #eef4ff;
-            color: #2f5fb3;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .summary-total {
-            background: #fff5db;
-            color: #9a6b00;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid #ececec;
-            vertical-align: middle;
-        }
-
-        th {
-            background-color: #f7f9fc;
-            color: #444;
-            font-weight: 700;
-        }
-
-        .confidence-bar {
-            background: #eee;
-            border-radius: 999px;
-            height: 10px;
-            width: 110px;
-            display: inline-block;
-            margin-right: 10px;
-            vertical-align: middle;
-            overflow: hidden;
-        }
-
-        .confidence-level {
-            background: #4caf50;
-            height: 100%;
-            border-radius: 999px;
-        }
-
-        details {
-            margin-top: 18px;
-        }
-
-        details summary {
-            cursor: pointer;
-            color: #4a7df0;
-            font-weight: 600;
-            list-style: none;
-        }
-
-        details summary::-webkit-details-marker {
-            display: none;
-        }
-
-        details summary::before {
-            content: "▶ ";
-            font-size: 12px;
-        }
-
-        details[open] summary::before {
-            content: "▼ ";
-        }
-
-        pre {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            overflow: auto;
-            margin-top: 10px;
-            border: 1px solid #eee;
-        }
-
-        .empty-text {
-            color: #777;
-            font-size: 15px;
-            padding: 8px 0;
-        }
-
-        @media (max-width: 900px) {
-            .upload-form-row {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 14px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/detect.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 </head>
 <body>
@@ -344,16 +14,14 @@
         <h1>YOLO 目标检测系统</h1>
         <div>
             <a href="/api/detect/history" class="btn" style="margin-right: 10px;">检测历史</a>
-
-            <!-- 👇 新加的 -->
             <a href="/api/detect/stats" class="btn" style="margin-right: 10px;">统计分析</a>
-
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn logout-btn">退出登录</button>
             </form>
         </div>
     </div>
 
+    <!-- 图片上传 -->
     <div class="upload-section">
         <form id="uploadForm" action="/api/detect/image" method="post" enctype="multipart/form-data">
             <div class="upload-form-row">
@@ -367,7 +35,7 @@
                     <input type="number" id="confidence" name="confidence" value="0.5" step="0.05" min="0" max="1">
                 </div>
 
-                <button type="submit" class="btn" id="submitBtn">开始检测</button>
+                <button type="submit" class="btn" id="submitBtn">开始图片检测</button>
             </div>
         </form>
     </div>
@@ -377,6 +45,7 @@
         <p>AI 正在全力识别中，请稍候...</p>
     </div>
 
+    <!-- 图片结果 -->
     <div class="container" id="imageContainer" style="display: none;">
         <div class="card">
             <div class="card-title-line">
@@ -393,7 +62,31 @@
         </div>
     </div>
 
-    <div class="upload-section" style="margin-top: 20px;">
+    <!-- 图片详情统计：这里必须紧跟在图片结果下面 -->
+    <div id="result" style="display: none;">
+        <h3 class="result-main-title">检测详情统计</h3>
+
+        <div class="filter-row">
+            <label for="classFilter" class="filter-label">目标类别筛选:</label>
+            <input type="text" id="classFilter" placeholder="例如：person">
+            <button type="button" class="btn" id="filterBtn">应用筛选</button>
+            <button type="button" class="btn secondary-btn" id="resetFilterBtn">重置</button>
+        </div>
+
+        <div id="summaryContainer"></div>
+
+        <div id="chartContainer"></div>
+
+        <div id="tableContainer"></div>
+
+        <details class="json-details">
+            <summary>点击查看原始 JSON 数据</summary>
+            <pre id="detectionResult"></pre>
+        </details>
+    </div>
+
+    <!-- 视频上传：放到图片统计后面 -->
+    <div class="upload-section">
         <form id="videoUploadForm" enctype="multipart/form-data">
             <div class="upload-form-row">
                 <div class="form-group">
@@ -411,7 +104,7 @@
         </form>
     </div>
 
-    <div id="videoLoader" style="display:none; text-align:center; padding:24px 0;">
+    <div id="videoLoader">
         <div class="spinner"></div>
         <p>视频检测中，请稍候...</p>
     </div>
@@ -420,319 +113,12 @@
         <div class="card-title-line">
             <h3>视频检测结果</h3>
         </div>
-        <video id="resultVideo" controls style="width:100%; border-radius:10px; border:1px solid #eee;"></video>
-    </div>
-
-    <div id="result" style="display: none;">
-        <h3 style="margin-bottom: 16px;">检测详情统计</h3>
-
-        <div class="filter-row">
-            <label for="classFilter" class="filter-label">目标类别筛选:</label>
-            <input type="text" id="classFilter" placeholder="例如：person">
-            <button type="button" class="btn" id="filterBtn">应用筛选</button>
-            <button type="button" class="btn secondary-btn" id="resetFilterBtn">重置</button>
-        </div>
-
-        <div id="summaryContainer"></div>
-
-        <div id="chartContainer" style="width: 100%; height: 360px; margin-bottom: 18px; background: #fff; border: 1px solid #eceff3; border-radius: 12px;"></div>
-
-        <div id="tableContainer"></div>
-
-        <details style="margin-top: 20px; color: #666;">
-            <summary>查看原始 JSON 数据</summary>
-            <pre id="detectionResult"></pre>
-        </details>
+        <div id="videoInfo" class="video-info"></div>
+        <video id="resultVideo" controls class="result-video"></video>
     </div>
 
 </div>
 
-<script>
-    const form = document.getElementById("uploadForm");
-    const fileInput = document.getElementById("file");
-    const submitBtn = document.getElementById("submitBtn");
-    const loader = document.getElementById("loader");
-    const imageContainer = document.getElementById("imageContainer");
-    const originalImage = document.getElementById("originalImage");
-    const detectedImage = document.getElementById("detectedImage");
-    const resultDiv = document.getElementById("result");
-    const tableContainer = document.getElementById("tableContainer");
-    const summaryContainer = document.getElementById("summaryContainer");
-    const chartContainer = document.getElementById("chartContainer");
-    const filterInput = document.getElementById("classFilter");
-    const filterBtn = document.getElementById("filterBtn");
-    const resetFilterBtn = document.getElementById("resetFilterBtn");
-    const videoUploadForm = document.getElementById("videoUploadForm");
-    const videoFileInput = document.getElementById("videoFile");
-    const videoSubmitBtn = document.getElementById("videoSubmitBtn");
-    const videoLoader = document.getElementById("videoLoader");
-    const videoResultCard = document.getElementById("videoResultCard");
-    const resultVideo = document.getElementById("resultVideo");
-
-    let allPredictions = [];
-
-    fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                originalImage.src = event.target.result;
-                imageContainer.style.display = "flex";
-                resultDiv.style.display = "none";
-                detectedImage.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const formData = new FormData(form);
-
-        submitBtn.disabled = true;
-        loader.style.display = "block";
-        resultDiv.style.display = "none";
-
-        try {
-            const response = await fetch("/api/detect/image", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `服务器返回状态码 ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log("服务器返回原始数据:", result);
-
-            document.getElementById("detectionResult").innerText = JSON.stringify(result, null, 2);
-
-            let predictions = [];
-            if (Array.isArray(result)) {
-                predictions = result;
-            } else if (result && result.predictions && Array.isArray(result.predictions)) {
-                predictions = result.predictions;
-            }
-
-            allPredictions = predictions;
-            updateResultTable(predictions);
-
-            resultDiv.style.display = "block";
-            imageContainer.style.display = "flex";
-
-            if (result.image) {
-                detectedImage.src = result.image.startsWith('data:')
-                    ? result.image
-                    : `data:image/jpeg;base64,${result.image}`;
-            }
-
-        } catch (error) {
-            console.error("检测出错:", error);
-            alert("检测失败，详细错误: " + error.message);
-        } finally {
-            submitBtn.disabled = false;
-            loader.style.display = "none";
-        }
-    });
-
-    function updateResultTable(predictions) {
-        if (!predictions || predictions.length === 0) {
-            summaryContainer.innerHTML = "";
-            chartContainer.innerHTML = "";
-            tableContainer.innerHTML = `<p class="empty-text">未检测到任何目标。</p>`;
-            return;
-        }
-
-        const classCountMap = {};
-        predictions.forEach(p => {
-            const className = p.name || "unknown";
-            classCountMap[className] = (classCountMap[className] || 0) + 1;
-        });
-
-        let summaryHtml = `
-            <div class="summary-block">
-                <div class="summary-title">目标数量统计</div>
-                <div class="summary-tags">
-        `;
-
-        summaryHtml += `<span class="summary-tag summary-total">总目标：${predictions.length} 个</span>`;
-
-        for (const className in classCountMap) {
-            summaryHtml += `<span class="summary-tag">${className}：${classCountMap[className]} 个</span>`;
-        }
-
-        summaryHtml += `
-                </div>
-            </div>
-        `;
-
-        summaryContainer.innerHTML = summaryHtml;
-        renderChart(classCountMap);
-        let html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>目标名称</th>
-                        <th>置信度</th>
-                        <th>坐标 (xmin, ymin, xmax, ymax)</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        predictions.forEach(p => {
-            const confPercent = (p.confidence * 100).toFixed(1) + "%";
-            html += `
-                <tr>
-                    <td><strong>${p.name}</strong></td>
-                    <td>
-                        <div class="confidence-bar">
-                            <div class="confidence-level" style="width: ${confPercent}"></div>
-                        </div>
-                        ${confPercent}
-                    </td>
-                    <td>${Math.round(p.xmin)}, ${Math.round(p.ymin)}, ${Math.round(p.xmax)}, ${Math.round(p.ymax)}</td>
-                </tr>
-            `;
-        });
-
-        html += `
-                </tbody>
-            </table>
-        `;
-
-        tableContainer.innerHTML = html;
-    }
-    function renderChart(classCountMap) {
-        const chart = echarts.init(chartContainer);
-
-        const classNames = Object.keys(classCountMap);
-        const classValues = Object.values(classCountMap);
-
-        const option = {
-            title: {
-                text: '检测结果类别统计图',
-                left: 'center',
-                top: 10,
-                textStyle: {
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    color: '#333'
-                }
-            },
-            tooltip: {
-                trigger: 'axis'
-            },
-            grid: {
-                left: '8%',
-                right: '5%',
-                bottom: '10%',
-                top: '22%',
-                containLabel: true
-            },
-            xAxis: {
-                type: 'category',
-                data: classNames,
-                axisLabel: {
-                    fontSize: 13
-                }
-            },
-            yAxis: {
-                type: 'value',
-                minInterval: 1
-            },
-            series: [
-                {
-                    name: '数量',
-                    type: 'bar',
-                    data: classValues,
-                    barWidth: '45%',
-                    itemStyle: {
-                        borderRadius: [6, 6, 0, 0]
-                    },
-                    label: {
-                        show: true,
-                        position: 'top'
-                    }
-                }
-            ]
-        };
-
-        chart.setOption(option);
-
-        window.addEventListener('resize', function () {
-            chart.resize();
-        });
-    }
-    filterBtn.addEventListener("click", () => {
-        const keyword = filterInput.value.trim().toLowerCase();
-
-        if (!keyword) {
-            updateResultTable(allPredictions);
-            return;
-        }
-
-        const filteredPredictions = allPredictions.filter(p =>
-            (p.name || "").toLowerCase() === keyword
-        );
-
-        updateResultTable(filteredPredictions);
-    });
-
-    resetFilterBtn.addEventListener("click", () => {
-        filterInput.value = "";
-        updateResultTable(allPredictions);
-    });
-
-    //视频
-    videoUploadForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const file = videoFileInput.files[0];
-        if (!file) {
-            alert("请选择视频文件");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("confidence", document.getElementById("videoConfidence").value);
-
-        videoSubmitBtn.disabled = true;
-        videoLoader.style.display = "block";
-        videoResultCard.style.display = "none";
-
-        try {
-            const response = await fetch("/api/detect/video", {
-                method: "POST",
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `服务器返回状态码 ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log("视频检测结果:", result);
-
-            if (result.video_url) {
-                resultVideo.src = result.video_url;
-                videoResultCard.style.display = "block";
-            } else {
-                alert("视频检测完成，但没有返回视频地址");
-            }
-
-        } catch (error) {
-            console.error("视频检测失败:", error);
-            alert("视频检测失败：" + error.message);
-        } finally {
-            videoSubmitBtn.disabled = false;
-            videoLoader.style.display = "none";
-        }
-    });
-</script>
+<script src="/js/detect.js"></script>
 </body>
 </html>

@@ -3,311 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>检测历史记录</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            color: #222;
-        }
-        .page-container {
-            max-width: 1220px;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 22px;
-            padding: 14px 24px;
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .btn {
-            background-color: #4a7df0;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #3367d6;
-        }
-
-        .logout-btn {
-            background-color: #d9534f;
-        }
-
-        .logout-btn:hover {
-            background-color: #c83f3b;
-        }
-
-        .delete-btn {
-            background: #fff1f1;
-            color: #d9534f;
-            border: 1px solid #f3c2c0;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .delete-btn:hover {
-            background: #ffe4e4;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 14px;
-            background: transparent;
-        }
-
-        thead th {
-            background: transparent;
-            color: #555;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 0 16px 8px 16px;
-            text-align: left;
-        }
-
-        tbody tr {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-
-        tbody td {
-            padding: 18px 16px;
-            vertical-align: top;
-            border: none;
-        }
-
-        tbody tr td:first-child {
-            border-top-left-radius: 14px;
-            border-bottom-left-radius: 14px;
-        }
-
-        tbody tr td:last-child {
-            border-top-right-radius: 14px;
-            border-bottom-right-radius: 14px;
-        }
-
-        .thumb {
-            width: 140px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid #eee;
-            display: block;
-            background: #f8f9fa;
-        }
-
-        .file-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #222;
-            line-height: 1.6;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            max-width: 260px;
-        }
-
-        .detect-time {
-            font-size: 14px;
-            color: #888;
-            line-height: 1.6;
-            white-space: nowrap;
-        }
-
-        .result-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .summary-tag {
-            background: #eef4ff;
-            color: #2f5fb3;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .summary-total {
-            background: #fff5db;
-            color: #9a6b00;
-        }
-
-        .details-box details {
-            margin-top: 4px;
-        }
-
-        .details-box summary {
-            cursor: pointer;
-            color: #4a7df0;
-            font-weight: 600;
-            list-style: none;
-            outline: none;
-        }
-
-        .details-box summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .details-box summary::before {
-            content: "▶ ";
-            font-size: 12px;
-        }
-
-        .details-box details[open] summary::before {
-            content: "▼ ";
-        }
-
-        .detail-pre {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            overflow: auto;
-            margin-top: 10px;
-            max-width: 520px;
-            max-height: 220px;
-            color: #444;
-            line-height: 1.5;
-            border: 1px solid #eee;
-        }
-
-        .no-records-row td {
-            background: white;
-            border-radius: 14px;
-            text-align: center;
-            padding: 26px;
-            color: #777;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-        .detail-table-wrapper {
-            margin-top: 12px;
-            max-width: 560px;
-            overflow-x: auto;
-        }
-
-        .detail-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fafbfc;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: none;
-        }
-
-        .detail-table th,
-        .detail-table td {
-            padding: 10px 12px;
-            font-size: 13px;
-            border-bottom: 1px solid #ececec;
-            text-align: left;
-            vertical-align: middle;
-        }
-
-        .detail-table th {
-            background: #f3f6fb;
-            color: #444;
-            font-weight: 700;
-        }
-
-        .detail-table tr:last-child td {
-            border-bottom: none;
-        }
-        .action-cell {
-            vertical-align: middle;
-            padding-top: 20px;
-        }
-        .detail-content {
-            margin-top: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .detail-image-box {
-            width: 100%;
-            max-width: 520px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #eee;
-            background: #fafafa;
-        }
-
-        .detail-image {
-            width: 100%;
-            display: block;
-        }
-        .download-box {
-            margin-top: 6px;
-        }
-
-        .download-btn {
-            display: inline-block;
-            background: #4a7df0;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .download-btn:hover {
-            background: #3367d6;
-        }
-        @media (max-width: 1100px) {
-            .thumb {
-                width: 110px;
-                height: 76px;
-            }
-
-            .file-name {
-                max-width: 180px;
-            }
-
-            .detail-pre {
-                max-width: 320px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/history.css">
 </head>
-<body><div class="page-container">
-    <!-- 原来所有内容 -->
+<body>
+<div class="page-container">
+
     <div class="header">
         <h1>检测历史记录</h1>
         <div>
             <a href="/api/detect/toDetect" class="btn" style="margin-right: 10px;">返回检测</a>
-
-            <!-- 👇 新加的 -->
             <a href="/api/detect/stats" class="btn" style="margin-right: 10px;">统计分析</a>
-
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn logout-btn">退出登录</button>
             </form>
@@ -317,8 +22,8 @@
     <table>
         <thead>
         <tr>
-            <th>检测图</th>
-            <th>图片名称</th>
+            <th>预览</th>
+            <th>文件名称</th>
             <th>检测时间</th>
             <th>检测结果</th>
             <th>操作</th>
@@ -330,24 +35,57 @@
         </tr>
 
         <tr th:each="record : ${records}">
+            <!-- 预览 -->
             <td>
-                <img class="thumb" alt="检测图">
+                <!-- 图片 -->
+                <div th:if="${record.fileType == 'image' || record.fileType == null}">
+                    <img class="thumb" alt="检测图">
+                </div>
+
+                <!-- 视频 -->
+                <div th:if="${record.fileType == 'video'}">
+                    <video class="thumb-video" controls th:src="${record.videoUrl}"></video>
+                </div>
             </td>
 
+            <!-- 文件名称 -->
             <td>
                 <div class="file-name" th:text="${record.imageName}"></div>
             </td>
 
+            <!-- 时间 -->
             <td>
-                <div class="detect-time" th:text="${#temporals.format(record.detectTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+                <div class="detect-time"
+                     th:text="${#temporals.format(record.detectTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
             </td>
 
+            <!-- 检测结果 -->
             <td>
-                <div class="result-container" th:attr="data-json=${record.detectResult}">
-                    <!-- JS动态填充 -->
+                <!-- 图片记录 -->
+                <div th:if="${record.fileType == 'image' || record.fileType == null}"
+                     class="result-container"
+                     th:attr="data-json=${record.detectResult}">
+                    <!-- JS 动态填充 -->
+                </div>
+
+                <!-- 视频记录 -->
+                <div th:if="${record.fileType == 'video'}" class="video-history-box">
+                    <div class="result-summary">
+                        <span class="summary-tag summary-total">文件类型：视频</span>
+                        <span class="summary-tag"
+                              th:text="'总帧数：' + ${record.frameCount} + ' 帧'"></span>
+                    </div>
+
+                    <details class="details-box">
+                        <summary>查看视频</summary>
+                        <div class="detail-content">
+                            <video controls class="history-video-player" th:src="${record.videoUrl}"></video>
+                        </div>
+                    </details>
                 </div>
             </td>
 
+            <!-- 操作 -->
             <td class="action-cell">
                 <form th:action="@{'/api/detect/history/delete/' + ${record.id}}" method="post"
                       onsubmit="return confirm('确定删除这条检测记录吗？');">
@@ -358,100 +96,8 @@
         </tbody>
     </table>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".result-container").forEach(container => {
-                try {
-                    const jsonText = container.getAttribute("data-json");
-                    if (!jsonText) return;
-
-                    const data = JSON.parse(jsonText);
-
-                    // 显示缩略图
-                    const img = container.parentElement.parentElement.querySelector(".thumb");
-                    if (data.image) {
-                        img.src = data.image;
-                    }
-
-                    // 统计类别数量
-                    const predictions = data.predictions || [];
-                    const countMap = {};
-
-                    predictions.forEach(p => {
-                        const name = p.name || "unknown";
-                        countMap[name] = (countMap[name] || 0) + 1;
-                    });
-
-                    let summaryHtml = `<div class="result-summary">`;
-                    summaryHtml += `<span class="summary-tag summary-total">总目标：${predictions.length} 个</span>`;
-
-                    for (const key in countMap) {
-                        summaryHtml += `<span class="summary-tag">${key}：${countMap[key]} 个</span>`;
-                    }
-
-                    summaryHtml += `</div>`;
-
-                    let tableRows = "";
-
-                    predictions.forEach(p => {
-                        const confPercent = ((p.confidence || 0) * 100).toFixed(1) + "%";
-                        tableRows += `
-        <tr>
-            <td>${p.name || "unknown"}</td>
-            <td>${confPercent}</td>
-            <td>${Math.round(p.xmin || 0)}, ${Math.round(p.ymin || 0)}, ${Math.round(p.xmax || 0)}, ${Math.round(p.ymax || 0)}</td>
-        </tr>
-    `;
-                    });
-
-                    let detailHtml = `
-    <div class="details-box">
-        <details>
-            <summary>查看详情</summary>
-
-            <div class="detail-content">
-
-                <!-- 放大检测图 -->
-                <div class="detail-image-box">
-                    <img src="${data.image || ''}" class="detail-image" alt="检测结果图">
-                </div>
-
-               <div class="download-box">
-                    <a href="${data.image}" download class="download-btn">下载检测图</a>
-                </div>
-
-                <!-- 表格 -->
-                <div class="detail-table-wrapper">
-                    <table class="detail-table">
-                        <thead>
-                            <tr>
-                                <th>目标名称</th>
-                                <th>置信度</th>
-                                <th>坐标</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        </details>
-    </div>
-`;
-
-                    container.innerHTML = summaryHtml + detailHtml;
-
-                } catch (e) {
-                    container.innerHTML = `<span style="color:#d9534f;">解析失败</span>`;
-                }
-            });
-        });
-    </script>
 </div>
 
-
-
+<script src="/js/history.js"></script>
 </body>
 </html>

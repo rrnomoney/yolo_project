@@ -164,6 +164,25 @@ public class DetectController {
             // 👉 调 Python 视频接口
             String result = restTemplate.postForObject(yoloVideoApiUrl, requestEntity, String.class);
 
+            // 解析 Python 返回结果
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode root = objectMapper.readTree(result);
+
+            String videoUrl = root.has("video_url") ? root.get("video_url").asText() : null;
+            Integer frameCount = root.has("frame_count") ? root.get("frame_count").asInt() : 0;
+
+            // 保存视频检测记录
+            DetectRecord record = new DetectRecord();
+            record.setUser(user);
+            record.setImageName(originalFilename);
+            record.setDetectResult(result);
+            record.setDetectTime(LocalDateTime.now());
+            record.setFileType("video");
+            record.setVideoUrl(videoUrl);
+            record.setFrameCount(frameCount);
+
+            detectRecordRepository.save(record);
+
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
@@ -171,6 +190,7 @@ public class DetectController {
             return ResponseEntity.status(500).body("视频检测转发失败: " + e.getMessage());
         }
     }
+
     @GetMapping("/history")
     public String getDetectionHistory(org.springframework.ui.Model model, Principal principal) {
         java.util.List<DetectRecord> records = new java.util.ArrayList<>();

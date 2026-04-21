@@ -21,7 +21,13 @@ public class DetectRecord {
     private String detectResult;
 
     private LocalDateTime detectTime;
+    @Column(nullable = false)
+    private String fileType = "image";
 
+    @Column(columnDefinition = "TEXT")
+    private String videoUrl;
+
+    private Integer frameCount;
     public DetectRecord() {}
 
     public DetectRecord(User user, String imageName, String detectResult, LocalDateTime detectTime) {
@@ -45,5 +51,28 @@ public class DetectRecord {
 
     public LocalDateTime getDetectTime() { return detectTime; }
     public void setDetectTime(LocalDateTime detectTime) { this.detectTime = detectTime; }
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
+    }
+
+    public Integer getFrameCount() {
+        return frameCount;
+    }
+
+    public void setFrameCount(Integer frameCount) {
+        this.frameCount = frameCount;
+    }
 }
 
