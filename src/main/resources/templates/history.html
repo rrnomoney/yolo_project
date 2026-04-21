@@ -19,6 +19,34 @@
         </div>
     </div>
 
+    <!-- 新增：筛选工具栏 -->
+    <div class="history-toolbar">
+        <div class="toolbar-group">
+            <label for="searchInput">文件名搜索：</label>
+            <input type="text" id="searchInput" placeholder="输入文件名关键词">
+        </div>
+
+        <div class="toolbar-group">
+            <label for="typeFilter">文件类型：</label>
+            <select id="typeFilter">
+                <option value="all">全部</option>
+                <option value="image">图片</option>
+                <option value="video">视频</option>
+            </select>
+        </div>
+
+        <div class="toolbar-group">
+            <label for="sortOrder">时间排序：</label>
+            <select id="sortOrder">
+                <option value="desc">最新优先</option>
+                <option value="asc">最早优先</option>
+            </select>
+        </div>
+
+        <button type="button" class="btn" id="applyFilterBtn">应用筛选</button>
+        <button type="button" class="btn secondary-btn" id="resetFilterBtn">重置</button>
+    </div>
+
     <table>
         <thead>
         <tr>
@@ -29,20 +57,23 @@
             <th>操作</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="historyTableBody">
         <tr th:if="${records != null and #lists.isEmpty(records)}" class="no-records-row">
             <td colspan="5">暂无检测记录</td>
         </tr>
 
-        <tr th:each="record : ${records}">
+        <tr th:each="record : ${records}"
+            class="history-row"
+            th:attr="data-file-type=${record.fileType == null ? 'image' : record.fileType},
+                     data-file-name=${record.imageName},
+                     data-detect-time=${#temporals.format(record.detectTime, 'yyyy-MM-dd HH:mm:ss')}">
+
             <!-- 预览 -->
             <td>
-                <!-- 图片 -->
                 <div th:if="${record.fileType == 'image' || record.fileType == null}">
                     <img class="thumb" alt="检测图">
                 </div>
 
-                <!-- 视频 -->
                 <div th:if="${record.fileType == 'video'}">
                     <video class="thumb-video" controls th:src="${record.videoUrl}"></video>
                 </div>
@@ -61,25 +92,32 @@
 
             <!-- 检测结果 -->
             <td>
-                <!-- 图片记录 -->
                 <div th:if="${record.fileType == 'image' || record.fileType == null}"
                      class="result-container"
                      th:attr="data-json=${record.detectResult}">
-                    <!-- JS 动态填充 -->
                 </div>
 
-                <!-- 视频记录 -->
-                <div th:if="${record.fileType == 'video'}" class="video-history-box">
+                <div th:if="${record.fileType == 'video'}"
+                     class="video-history-box video-result-container"
+                     th:attr="data-json=${record.detectResult}">
+
                     <div class="result-summary">
                         <span class="summary-tag summary-total">文件类型：视频</span>
                         <span class="summary-tag"
                               th:text="'总帧数：' + ${record.frameCount} + ' 帧'"></span>
                     </div>
 
+                    <!-- 这里专门给 JS 填充累计统计和去重统计 -->
+                    <div class="video-class-summary"></div>
+
                     <details class="details-box">
                         <summary>查看视频</summary>
                         <div class="detail-content">
                             <video controls class="history-video-player" th:src="${record.videoUrl}"></video>
+
+                            <div class="download-box">
+                                <a th:href="${record.videoUrl}" download class="download-btn">下载检测视频</a>
+                            </div>
                         </div>
                     </details>
                 </div>
