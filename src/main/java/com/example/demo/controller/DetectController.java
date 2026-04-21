@@ -241,9 +241,15 @@ public class DetectController {
 
         List<DetectRecord> records = detectRecordRepository.findByUserOrderByDetectTimeDesc(user);
 
-        int totalImages = records.size();
-        int totalObjects = 0;
-        Map<String, Integer> classCountMap = new LinkedHashMap<>();
+        int totalFiles = records.size();
+        int totalImages = 0;
+        int totalVideos = 0;
+
+        int totalObjects = 0;          // 图片目标数 + 视频累计检测次数
+        int totalUniqueObjects = 0;    // 视频去重目标总数
+
+        Map<String, Integer> totalClassCountMap = new LinkedHashMap<>();   // 总累计统计
+        Map<String, Integer> videoUniqueCountMap = new LinkedHashMap<>();  // 视频去重统计
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -255,17 +261,60 @@ public class DetectController {
                 }
 
                 JsonNode root = objectMapper.readTree(detectResult);
-                JsonNode predictions = root.get("predictions");
+                String fileType = record.getFileType();
 
-                if (predictions != null && predictions.isArray()) {
-                    for (JsonNode prediction : predictions) {
-                        totalObjects++;
+                // 兼容旧数据：null 默认按图片
+                if (fileType == null || "image".equals(fileType)) {
+                    totalImages++;
 
-                        String className = prediction.has("name")
-                                ? prediction.get("name").asText()
-                                : "unknown";
+                    JsonNode predictions = root.get("predictions");
+                    if (predictions != null && predictions.isArray()) {
+                        for (JsonNode prediction : predictions) {
+                            totalObjects++;
 
-                        classCountMap.put(className, classCountMap.getOrDefault(className, 0) + 1);
+                            String className = prediction.has("name")
+                                    ? prediction.get("name").asText()
+                                    : "unknown";
+
+                            totalClassCountMap.put(
+                                    className,
+                                    totalClassCountMap.getOrDefault(className, 0) + 1
+                            );
+                        }
+                    }
+                } else if ("video".equals(fileType)) {
+                    totalVideos++;
+
+                    // 视频累计检测次数
+                    JsonNode classCountMapNode = root.get("class_count_map");
+                    if (classCountMapNode != null && classCountMapNode.isObject()) {
+                        Iterator<String> fieldNames = classCountMapNode.fieldNames();
+                        while (fieldNames.hasNext()) {
+                            String className = fieldNames.next();
+                            int count = classCountMapNode.get(className).asInt();
+
+                            totalObjects += count;
+                            totalClassCountMap.put(
+                                    className,
+                                    totalClassCountMap.getOrDefault(className, 0) + count
+                            );
+                        }
+                    }
+
+                    // 视频去重统计
+                    JsonNode uniqueCountMapNode = root.get("unique_count_map");
+                    if (uniqueCountMapNode != null && uniqueCountMapNode.isObject()) {
+                        Iterator<String> fieldNames = uniqueCountMapNode.fieldNames();
+                        while (fieldNames.hasNext()) {
+                            String className = fieldNames.next();
+                            int count = uniqueCountMapNode.get(className).asInt();
+
+                            totalUniqueObjects += count;
+                            videoUniqueCountMap.put(
+                                    className,
+                                    videoUniqueCountMap.getOrDefault(className, 0) + count
+                            );
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -273,12 +322,22 @@ public class DetectController {
             }
         }
 
-        int classTypeCount = classCountMap.size();
+        int classTypeCount = totalClassCountMap.size();
 
-        model.addAttribute("totalImages", totalImages);
-        model.addAttribute("totalObjects", totalObjects);
-        model.addAttribute("classTypeCount", classTypeCount);
-        model.addAttribute("classCountMap", classCountMap);
+        try {
+            model.addAttribute("totalFiles", totalFiles);
+            model.addAttribute("totalImages", totalImages);
+            model.addAttribute("totalVideos", totalVideos);
+            model.addAttribute("totalObjects", totalObjects);
+            model.addAttribute("totalUniqueObjects", totalUniqueObjects);
+            model.addAttribute("classTypeCount", classTypeCount);
+
+            model.addAttribute("classCountMapJson", objectMapper.writeValueAsString(totalClassCountMap));
+            model.addAttribute("videoUniqueCountMapJson", objectMapper.writeValueAsString(videoUniqueCountMap));
+        } catch (Exception e) {
+            model.addAttribute("classCountMapJson", "{}");
+            model.addAttribute("videoUniqueCountMapJson", "{}");
+        }
 
         return "stats";
     }
